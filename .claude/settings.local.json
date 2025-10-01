@@ -54,7 +54,11 @@
       "Bash(unzip:*)",
       "Bash(chmod:*)",
       "Bash(backup.bat)",
-      "Bash(./backup.bat)"
+      "Bash(./backup.bat)",
+      "Bash(npx:*)",
+      "Bash(npm run tauri:dev:*)",
+      "Bash(cargo clean:*)",
+      "Bash(./full-backup.bat)"
     ],
     "deny": [],
     "ask": []

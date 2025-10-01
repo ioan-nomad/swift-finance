@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
-    "@tauri-apps/plugin-shell": "^2.0.0"
+    "@tauri-apps/plugin-shell": "^2.0.0",
+    "zod": "^4.1.11"
   }
 }
