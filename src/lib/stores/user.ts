@@ -1,51 +1,42 @@
+// src/lib/stores/user.ts
 import { writable } from 'svelte/store';
+import { storage } from '$lib/services/StorageService';
 
 interface UserStore {
   name: string;
   isDark: boolean;
 }
 
+const storedUser = storage.get<UserStore>('user_preferences') || {
+  name: 'John',
+  isDark: false
+};
+
 function createUserStore() {
-  const { subscribe, update } = writable<UserStore>({
-    name: 'John',
-    isDark: false
-  });
+  const { subscribe, update } = writable<UserStore>(storedUser);
 
   return {
     subscribe,
     toggleTheme: () => {
       update(user => {
         const newUser = { ...user, isDark: !user.isDark };
+        storage.set('user_preferences', newUser);
 
-        // Apply theme to document
         if (newUser.isDark) {
           document.documentElement.classList.add('dark');
         } else {
           document.documentElement.classList.remove('dark');
         }
 
-        // Save to localStorage
-        localStorage.setItem('user_preferences', JSON.stringify(newUser));
-
         return newUser;
       });
-    },
-    setName: (name: string) => {
-      update(user => ({ ...user, name }));
     }
   };
 }
 
 export const user = createUserStore();
 
-// Load saved preferences
-if (typeof window !== 'undefined') {
-  const saved = localStorage.getItem('user_preferences');
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    user.setName(parsed.name);
-    if (parsed.isDark) {
-      document.documentElement.classList.add('dark');
-    }
-  }
+// Apply initial theme
+if (storedUser.isDark) {
+  document.documentElement.classList.add('dark');
 }

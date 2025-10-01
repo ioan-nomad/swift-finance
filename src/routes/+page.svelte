@@ -1,143 +1,115 @@
+<!-- src/routes/+page.svelte -->
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { invoke } from '@tauri-apps/api/core';
+  import AddTransactionModal from '$lib/components/AddTransactionModal.svelte';
+  import HeaderSection from '$lib/components/layout/HeaderSection.svelte';
+  import StatsGrid from '$lib/components/dashboard/StatsGrid.svelte';
+  import FilterBar from '$lib/components/dashboard/FilterBar.svelte';
+  import QuickActions from '$lib/components/dashboard/QuickActions.svelte';
+  import TransactionsList from '$lib/components/dashboard/TransactionsList.svelte';
+  import FinancialChart from '$lib/components/dashboard/FinancialChart.svelte';
+  import { user } from '$lib/stores/user';
+  import { transactions, stats } from '$lib/stores/transactions';
+  import { filteredTransactions } from '$lib/stores/filters';
 
-  let greetMsg = '';
-  let name = 'Swift Finance';
+  let showAddModal = false;
 
-  async function greet() {
-    greetMsg = await invoke('greet', { name });
+  function handleExport() {
+    console.log('Export clicked');
+  }
+
+  function handleImport() {
+    console.log('Import clicked');
   }
 
   onMount(() => {
-    greet();
+    if ($user.isDark) {
+      document.documentElement.classList.add('dark');
+    }
   });
 </script>
 
-<div class="container">
-  <div class="header">
-    <h1>💰 Swift Finance</h1>
-    <p>Modern desktop finance management</p>
-  </div>
+<div class="page">
+  <HeaderSection onExport={handleExport} onImport={handleImport} />
 
-  <div class="content">
-    <div class="card">
-      <h2>Welcome!</h2>
-      <p>{greetMsg}</p>
-
-      <div class="features">
-        <div class="feature">
-          <h3>📊 Track Expenses</h3>
-          <p>Monitor your spending with detailed analytics</p>
-        </div>
-
-        <div class="feature">
-          <h3>💳 Manage Accounts</h3>
-          <p>Organize multiple bank accounts and cards</p>
-        </div>
-
-        <div class="feature">
-          <h3>📈 Investment Tracking</h3>
-          <p>Keep track of your investment portfolio</p>
-        </div>
-      </div>
-
-      <button on:click={greet} class="btn-primary">
-        Refresh Data
-      </button>
+  <main class="container">
+    <div class="welcome">
+      <h2>Welcome back, {$user.name}</h2>
+      <p>Here's your financial overview</p>
     </div>
-  </div>
+
+    <StatsGrid stats={$stats} isDark={$user.isDark} />
+
+    <FilterBar />
+
+    <div class="content-grid">
+      <QuickActions
+        isDark={$user.isDark}
+        on:addTransaction={() => showAddModal = true}
+        on:payBills={() => console.log('Pay Bills')}
+        on:viewReports={() => console.log('View Reports')}
+      />
+
+      <TransactionsList
+        transactions={$filteredTransactions}
+        loading={false}
+        on:view={(e) => console.log('View:', e.detail)}
+        on:edit={(e) => console.log('Edit:', e.detail)}
+        on:delete={(e) => transactions.remove(e.detail.id)}
+      />
+    </div>
+
+    <FinancialChart isDark={$user.isDark} />
+  </main>
+
+  <AddTransactionModal bind:isOpen={showAddModal} isDark={$user.isDark} />
 </div>
 
 <style>
+  .page {
+    min-height: 100vh;
+    background: #f9fafb;
+  }
+
+  :global(.dark) .page {
+    background: #111827;
+  }
+
   .container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 2rem;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
   }
 
-  .header {
-    text-align: center;
-    margin-bottom: 3rem;
+  .welcome {
+    margin-bottom: 2rem;
+  }
+
+  .welcome h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.875rem;
+    color: #1f2937;
+  }
+
+  :global(.dark) .welcome h2 {
     color: white;
   }
 
-  .header h1 {
-    font-size: 3rem;
-    margin-bottom: 0.5rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  .welcome p {
+    margin: 0;
+    color: #6b7280;
   }
 
-  .header p {
-    font-size: 1.2rem;
-    opacity: 0.9;
-  }
-
-  .content {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .card {
-    background: white;
-    border-radius: 20px;
-    padding: 3rem;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-    max-width: 800px;
-    width: 100%;
-    text-align: center;
-  }
-
-  .card h2 {
-    color: #333;
-    margin-bottom: 1rem;
-    font-size: 2rem;
-  }
-
-  .features {
+  .content-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 2rem;
-    margin: 2rem 0;
+    grid-template-columns: 300px 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
   }
 
-  .feature {
-    padding: 1.5rem;
-    border-radius: 12px;
-    background: #f8f9ff;
-    border: 1px solid #e1e5f2;
-  }
-
-  .feature h3 {
-    color: #667eea;
-    margin-bottom: 0.5rem;
-    font-size: 1.1rem;
-  }
-
-  .feature p {
-    color: #666;
-    font-size: 0.9rem;
-    line-height: 1.4;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: 50px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-    margin-top: 1rem;
-  }
-
-  .btn-primary:hover {
-    transform: translateY(-2px);
+  @media (max-width: 1024px) {
+    .content-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

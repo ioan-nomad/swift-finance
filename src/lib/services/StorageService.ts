@@ -1,9 +1,9 @@
+// src/lib/services/StorageService.ts
 /**
  * StorageService - Wrapper peste localStorage cu features avansate
- * - TTL (Time To Live) pentru expirarea automat
+ * - TTL (Time To Live) pentru expirarea automată
  * - Type-safe cu generics
  * - Error handling robust
- * - Validare i sanitizare
  */
 
 interface StorageItem<T> {
@@ -15,9 +15,6 @@ interface StorageItem<T> {
 class StorageService {
   private prefix: string = 'swift_finance_';
 
-  /**
-   * Get item from localStorage
-   */
   get<T>(key: string, defaultValue?: T): T | null {
     try {
       const fullKey = this.prefix + key;
@@ -45,9 +42,6 @@ class StorageService {
     }
   }
 
-  /**
-   * Set item in localStorage with optional TTL
-   */
   set<T>(key: string, value: T, ttlSeconds?: number): boolean {
     try {
       const fullKey = this.prefix + key;
@@ -65,9 +59,6 @@ class StorageService {
     }
   }
 
-  /**
-   * Remove item from localStorage
-   */
   remove(key: string): boolean {
     try {
       const fullKey = this.prefix + key;
@@ -79,16 +70,10 @@ class StorageService {
     }
   }
 
-  /**
-   * Check if key exists and is not expired
-   */
   has(key: string): boolean {
     return this.get(key) !== null;
   }
 
-  /**
-   * Clear all items with our prefix
-   */
   clear(): boolean {
     try {
       const keys = Object.keys(localStorage);
@@ -104,9 +89,6 @@ class StorageService {
     }
   }
 
-  /**
-   * Get all keys with our prefix
-   */
   keys(): string[] {
     const keys = Object.keys(localStorage);
     return keys
@@ -115,5 +97,4 @@ class StorageService {
   }
 }
 
-// Export singleton instance
 export const storage = new StorageService();

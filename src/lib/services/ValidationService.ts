@@ -1,57 +1,54 @@
 // src/lib/services/ValidationService.ts
-// Service pentru validare centralizat cu Zod
-
 import { z } from 'zod';
-import type { Transaction } from '$shared/types/transaction';
 
-// Transaction validation schema
-export const TransactionSchema = z.object({
+// Transaction Schema
+const TransactionSchema = z.object({
   id: z.string().uuid(),
-  date: z.string().datetime(),
+  description: z.string().min(1, 'Description required').max(200),
   amount: z.number().positive('Amount must be positive'),
   type: z.enum(['income', 'expense']),
-  category: z.string().min(1, 'Category is required'),
-  description: z.string().min(1, 'Description is required')
+  category: z.string().min(1, 'Category required'),
+  date: z.string().datetime()
 });
 
-// Partial schema for updates
-export const TransactionUpdateSchema = TransactionSchema.partial().omit({ id: true });
+// Partial update schema
+const TransactionUpdateSchema = TransactionSchema.partial().omit({ id: true });
 
-// Category validation
-export const CategorySchema = z.object({
-  id: z.string().uuid(),
-  name: z.string().min(1).max(50),
-  icon: z.string().optional(),
-  color: z.string().regex(/^#[0-9A-F]{6}$/i).optional(),
-  type: z.enum(['income', 'expense', 'both']),
-  isDefault: z.boolean().default(false)
+// Category Schema
+const CategorySchema = z.enum([
+  'salary',
+  'freelance',
+  'investment',
+  'food',
+  'transport',
+  'utilities',
+  'entertainment',
+  'shopping',
+  'health',
+  'education',
+  'other'
+]);
+
+// User Preferences Schema
+const UserPreferencesSchema = z.object({
+  name: z.string().min(1),
+  isDark: z.boolean(),
+  currency: z.string().optional(),
+  language: z.enum(['ro', 'en']).optional()
 });
 
-// User preferences validation
-export const UserPreferencesSchema = z.object({
-  isDark: z.boolean().default(false),
-  currency: z.string().default('RON'),
-  language: z.enum(['en', 'ro']).default('ro'),
-  dateFormat: z.string().default('DD/MM/YYYY'),
-  startOfWeek: z.enum(['monday', 'sunday']).default('monday')
+// Filter Schema
+const FilterSchema = z.object({
+  searchQuery: z.string(),
+  filterType: z.enum(['all', 'income', 'expense']),
+  startDate: z.string().optional(),
+  endDate: z.string().optional()
 });
 
-// Filter validation
-export const FilterSchema = z.object({
-  searchQuery: z.string().optional(),
-  type: z.enum(['all', 'income', 'expense']).default('all'),
-  dateRange: z.object({
-    start: z.string().datetime().nullable(),
-    end: z.string().datetime().nullable()
-  }).optional(),
-  categories: z.array(z.string()).optional(),
-  minAmount: z.number().optional(),
-  maxAmount: z.number().optional()
-});
+type Transaction = z.infer<typeof TransactionSchema>;
 
-export class ValidationService {
-  // Validate with custom error messages
-  validateTransaction(data: unknown): { success: boolean; data?: Transaction; errors?: string[] } {
+class ValidationService {
+  validateTransaction(data: unknown): { success: true; data: Transaction } | { success: false; errors?: string[] } {
     try {
       const validated = TransactionSchema.parse(data);
       return { success: true, data: validated };
@@ -64,27 +61,22 @@ export class ValidationService {
     }
   }
 
-  // Safe parse with type guard
   isValidTransaction(data: unknown): data is Transaction {
     return TransactionSchema.safeParse(data).success;
   }
 
-  // Validate partial update
   validateTransactionUpdate(data: unknown) {
     return TransactionUpdateSchema.safeParse(data);
   }
 
-  // Validate user preferences
   validatePreferences(data: unknown) {
     return UserPreferencesSchema.safeParse(data);
   }
 
-  // Validate filters
   validateFilters(data: unknown) {
     return FilterSchema.safeParse(data);
   }
 
-  // Create validated transaction with auto-generated fields
   createTransaction(data: Omit<Transaction, 'id' | 'date'>): Transaction | null {
     const newTransaction = {
       ...data,
@@ -96,14 +88,12 @@ export class ValidationService {
     return result.success ? result.data : null;
   }
 
-  // Sanitize user input
   sanitizeAmount(value: string): number | null {
     const cleaned = value.replace(/[^0-9.,]/g, '').replace(',', '.');
     const num = parseFloat(cleaned);
     return isNaN(num) || num <= 0 ? null : num;
   }
 
-  // Format error messages for UI
   formatErrors(errors: z.ZodError): Record<string, string> {
     const formatted: Record<string, string> = {};
     errors.errors.forEach(error => {
@@ -114,10 +104,8 @@ export class ValidationService {
   }
 }
 
-// Singleton instance
 export const validation = new ValidationService();
 
-// Export schemas for use in forms
 export const schemas = {
   transaction: TransactionSchema,
   transactionUpdate: TransactionUpdateSchema,

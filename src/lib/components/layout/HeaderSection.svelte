@@ -1,61 +1,113 @@
-<!-- HeaderSection.svelte - Clean header component -->
+<!-- src/lib/components/layout/HeaderSection.svelte -->
 <script lang="ts">
   import { user } from '$lib/stores/user';
-  import { Moon, Sun, Download, Upload } from 'lucide-svelte';
 
-  export let onExport: () => void = () => {};
-  export let onImport: () => void = () => {};
-
-  function toggleTheme() {
-    user.toggleTheme();
-  }
+  export let onExport: () => void;
+  export let onImport: () => void;
 </script>
 
-<header class="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between items-center h-16">
-      <!-- Logo & Title -->
-      <div class="flex items-center space-x-3">
-        <div class="text-2xl">💰</div>
-        <h1 class="text-xl font-bold text-gray-900 dark:text-white">
-          Swift Finance
-        </h1>
-      </div>
+<header class="header">
+  <div class="header-content">
+    <div class="brand">
+      <h1>💰 Swift Finance</h1>
+      <p>Modern Finance Management</p>
+    </div>
 
-      <!-- User & Actions -->
-      <div class="flex items-center space-x-4">
-        <span class="text-sm text-gray-600 dark:text-gray-400">
-          Hello, {$user.name}! 👋
-        </span>
+    <div class="header-actions">
+      <button class="btn-theme" on:click={() => user.toggleTheme()}>
+        {$user.isDark ? '☀️' : '🌙'}
+      </button>
 
-        <button
-          on:click={onExport}
-          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          title="Export Data"
-        >
-          <Download class="w-5 h-5 text-gray-600 dark:text-gray-400" />
-        </button>
+      <button class="btn-action" on:click={onExport}>
+        📤 Export
+      </button>
 
-        <button
-          on:click={onImport}
-          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          title="Import Data"
-        >
-          <Upload class="w-5 h-5 text-gray-600 dark:text-gray-400" />
-        </button>
+      <button class="btn-action" on:click={onImport}>
+        📥 Import
+      </button>
 
-        <button
-          on:click={toggleTheme}
-          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          title="Toggle Theme"
-        >
-          {#if $user.isDark}
-            <Sun class="w-5 h-5 text-yellow-500" />
-          {:else}
-            <Moon class="w-5 h-5 text-gray-600" />
-          {/if}
-        </button>
+      <div class="user-info">
+        <span>👤 {$user.name}</span>
       </div>
     </div>
   </div>
 </header>
+
+<style>
+  .header {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 1rem 2rem;
+  }
+
+  :global(.dark) .header {
+    background: #1f2937;
+  }
+
+  .header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .brand h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #1f2937;
+  }
+
+  :global(.dark) .brand h1 {
+    color: white;
+  }
+
+  .brand p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .btn-theme, .btn-action {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+  }
+
+  .btn-theme {
+    background: #f3f4f6;
+    font-size: 1.5rem;
+  }
+
+  :global(.dark) .btn-theme {
+    background: #374151;
+  }
+
+  .btn-action {
+    background: #3b82f6;
+    color: white;
+    font-weight: 500;
+  }
+
+  .btn-action:hover {
+    background: #2563eb;
+  }
+
+  .user-info {
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  :global(.dark) .user-info {
+    color: #9ca3af;
+  }
+</style>

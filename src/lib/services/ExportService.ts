@@ -1,107 +1,72 @@
 // src/lib/services/ExportService.ts
-// Service pentru export date - JSON și TXT only
-
 import type { Transaction } from '$shared/types/transaction';
 import type { Stats } from '$shared/types/stats';
 
-export interface ExportOptions {
+interface ExportOptions {
   format: 'json' | 'txt';
   includeStats?: boolean;
-  dateRange?: {
-    start: Date;
-    end: Date;
-  };
 }
 
-export class ExportService {
-
-  // Export transactions as JSON
+class ExportService {
   exportJSON(transactions: Transaction[], stats?: Stats): string {
     const data = {
       exportDate: new Date().toISOString(),
-      version: '1.0.0',
+      version: '1.0',
       transactions,
-      stats: stats || null,
-      metadata: {
-        count: transactions.length,
-        currency: 'RON'
+      stats: stats || undefined,
+      summary: {
+        totalTransactions: transactions.length,
+        totalIncome: transactions
+          .filter(t => t.type === 'income')
+          .reduce((sum, t) => sum + t.amount, 0),
+        totalExpenses: transactions
+          .filter(t => t.type === 'expense')
+          .reduce((sum, t) => sum + t.amount, 0)
       }
     };
 
     return JSON.stringify(data, null, 2);
   }
 
-  // Export as plain text report
   exportTXT(transactions: Transaction[], stats?: Stats): string {
-    const lines: string[] = [];
-    const date = new Date().toLocaleDateString('ro-RO');
-
-    lines.push('='.repeat(50));
-    lines.push('SWIFT FINANCE - RAPORT TRANZACȚII');
-    lines.push('='.repeat(50));
-    lines.push(`Data export: ${date}`);
-    lines.push('');
+    let txt = '='.repeat(50) + '\n';
+    txt += 'SWIFT FINANCE - TRANSACTION EXPORT\n';
+    txt += `Export Date: ${new Date().toLocaleString()}\n`;
+    txt += '='.repeat(50) + '\n\n';
 
     if (stats) {
-      lines.push('SUMAR:');
-      lines.push(`- Venituri totale: ${stats.totalIncome.toFixed(2)} RON`);
-      lines.push(`- Cheltuieli totale: ${stats.totalExpenses.toFixed(2)} RON`);
-      lines.push(`- Balanță: ${stats.totalBalance.toFixed(2)} RON`);
-      lines.push(`- Rata economii: ${stats.savingsRate.toFixed(1)}%`);
-      lines.push('');
-      lines.push('-'.repeat(50));
-      lines.push('');
+      txt += 'SUMMARY:\n';
+      txt += `Total Balance: $${stats.balance.toFixed(2)}\n`;
+      txt += `Total Income: $${stats.income.toFixed(2)}\n`;
+      txt += `Total Expenses: $${stats.expenses.toFixed(2)}\n`;
+      txt += `Transaction Count: ${stats.transactionCount}\n\n`;
     }
 
-    lines.push('TRANZACȚII:');
-    lines.push('');
+    txt += 'TRANSACTIONS:\n';
+    txt += '-'.repeat(50) + '\n';
 
-    // Group by type
-    const income = transactions.filter(t => t.type === 'income');
-    const expenses = transactions.filter(t => t.type === 'expense');
+    transactions.forEach((t, index) => {
+      txt += `${index + 1}. ${t.date.split('T')[0]} - ${t.description}\n`;
+      txt += `   Type: ${t.type.toUpperCase()} | Category: ${t.category}\n`;
+      txt += `   Amount: $${t.amount.toFixed(2)}\n`;
+      txt += '-'.repeat(50) + '\n';
+    });
 
-    if (income.length > 0) {
-      lines.push('VENITURI:');
-      income.forEach(t => {
-        const date = new Date(t.date).toLocaleDateString('ro-RO');
-        lines.push(`  ${date} - ${t.category}: ${t.amount.toFixed(2)} RON`);
-        lines.push(`    ${t.description}`);
-      });
-      lines.push('');
-    }
-
-    if (expenses.length > 0) {
-      lines.push('CHELTUIELI:');
-      expenses.forEach(t => {
-        const date = new Date(t.date).toLocaleDateString('ro-RO');
-        lines.push(`  ${date} - ${t.category}: ${t.amount.toFixed(2)} RON`);
-        lines.push(`    ${t.description}`);
-      });
-    }
-
-    lines.push('');
-    lines.push('='.repeat(50));
-
-    return lines.join('\n');
+    return txt;
   }
 
-  // Download file utility
-  downloadFile(content: string, filename: string, mimeType: string): void {
+  private downloadFile(content: string, filename: string, mimeType: string): void {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-
     link.href = url;
     link.download = filename;
     document.body.appendChild(link);
     link.click();
-
-    // Cleanup
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   }
 
-  // Main export method
   export(
     transactions: Transaction[],
     options: ExportOptions,
@@ -118,12 +83,10 @@ export class ExportService {
     }
   }
 
-  // Import JSON data
   importJSON(jsonString: string): { transactions: Transaction[]; stats?: Stats } | null {
     try {
       const data = JSON.parse(jsonString);
 
-      // Validate structure
       if (!data.transactions || !Array.isArray(data.transactions)) {
         throw new Error('Invalid JSON structure');
       }
@@ -139,5 +102,4 @@ export class ExportService {
   }
 }
 
-// Singleton instance
 export const exportService = new ExportService();
