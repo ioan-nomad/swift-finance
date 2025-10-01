@@ -45,7 +45,11 @@
       "Bash(touch:*)",
       "Bash(git checkout:*)",
       "Bash(cp:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(git branch:*)",
+      "Bash(gh repo view:*)",
+      "Read(//c/Users/ciupe/Desktop/**)",
+      "Read(//c/Users/ciupe/**)"
     ],
     "deny": [],
     "ask": []
