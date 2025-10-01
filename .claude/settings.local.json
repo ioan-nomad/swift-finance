@@ -51,7 +51,10 @@
       "Read(//c/Users/ciupe/Desktop/**)",
       "Read(//c/Users/ciupe/**)",
       "Bash(dir \"C:$Recycle.Bin\" /s /b)",
-      "Bash(unzip:*)"
+      "Bash(unzip:*)",
+      "Bash(chmod:*)",
+      "Bash(backup.bat)",
+      "Bash(./backup.bat)"
     ],
     "deny": [],
     "ask": []
